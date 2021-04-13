@@ -1,0 +1,35 @@
+def void as_proc() proc() do 
+end;
+
+def int as_block() do 
+    return 1;
+end;
+
+def void as_lambda(int _) void lambda(int x) do 
+    print(x);
+end;
+
+def int main() do
+    after_main();
+    int x = 1;
+    void lambda() mut block = void lambda() do end;
+    if (x == 1) 
+        block = void lambda do
+            print(1);
+        end
+    else
+        block = void lambda do
+            print(2);
+        end  
+
+    def void dynamic() block; 
+    int x = 2;
+    dynamic(); # 1
+    as_lambda(as_block()); # 1
+    as_proc();
+    return 1;
+end;
+
+def void after_main() do
+    print("I AM CALLABLE");
+end;

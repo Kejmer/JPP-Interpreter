@@ -1,0 +1,13 @@
+def void not_clear() proc() do 
+    x = x + 1; # dla bool zwróciłoby true
+end;
+
+def int main() do 
+    int mut x = 1;
+    not_clear();
+    bool mut x = false; # redefinicja
+    not_clear(); # próba nałożenia +1 do bool
+    return 1;
+end;
+
+<# warto zaznaczyć że bool x = 1, będzie interpretowane jako true #>

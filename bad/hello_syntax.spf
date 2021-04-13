@@ -1,0 +1,3 @@
+def main() do # brak typu main
+    print("Hello Symntax Error") # Brak średników
+end 
