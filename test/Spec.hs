@@ -13,4 +13,4 @@ testFeature name succeed = do
 
 testAll :: IO ()
 testAll = do
-    testFeature "Statyczne typowanie" TypeCheckTest.testGoodTypes 2
+    testFeature "Statyczne typowanie" (TypeCheckTest.testGoodTypes 2)

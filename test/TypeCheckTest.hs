@@ -7,5 +7,5 @@ import Par   (pProgram)
 testGoodTypes :: Verbosity -> IO Bool 
 testGoodTypes v = do
     putStrLn "No siema"
-    run v pProgram
+    runFile v pProgram "good/hello_world.spf"
     pure True
