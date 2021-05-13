@@ -1,4 +1,4 @@
 def int main() do 
     print("Hello World!");
     return 0;
-end
+end;

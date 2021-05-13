@@ -41,26 +41,25 @@ BStmt.       Stmt ::= Block ;
 DeclConst.   Stmt ::= BasicType "mut" Ident "=" Expr ;
 DeclMut.     Stmt ::= BasicType Ident "=" Expr ;
 Ass.         Stmt ::= Ident "=" Expr ;
+ArrAss.      Stmt ::= Ident "[" Expr "]" "=" Expr ;
 Ret.         Stmt ::= "return" Expr ;
 If.          Stmt ::= "if" "(" Expr ")" HBlock ;
 IfElse.      Stmt ::= "if" "(" Expr ")" HBlock "else" HBlock ;
 While.       Stmt ::= "while" "(" Expr ")" HBlock ;
 Print.       Stmt ::= "print" "(" Expr ")" ;
-For.         Stmt ::= "for" Collection Proc ;
+For.         Stmt ::= "for" Expr Proc ;
 SExp.        Stmt ::= Expr ;
+_.           Stmt ::= Stmt ";" ;
 terminator   Stmt ";" ;
 
 ------------------------- types ------------------------------
 Ref.         Type ::= "&" BasicType ;
 MutRef.      Type ::= "&mut" BasicType ;
 Mut.         Type ::= "mut" BasicType ;
-Cpy.         Type ::= BasicType ;
+Const.       Type ::= BasicType ;
 separator    Type "," ;
 
-Arr.         Collection ::= BasicType "[]" ;
-SArr.        Collection ::= "string" ;
-
-Col.         BasicType ::= Collection ;
+Arr.         BasicType ::= BasicType "[]" ;
 Int.         BasicType ::= "int" ;
 Str.         BasicType ::= "string" ;
 Bool.        BasicType ::= "bool" ;
@@ -83,7 +82,7 @@ FDefAlt.     Stmt ::= "def" BasicType Ident "(" [Arg] ")" Lambda ;
 
 ------------------------- expr -------------------------------
 EVar.        Expr6 ::= Ident ;
-ELitInt.     Expr6 ::= Integer ;
+EInt.        Expr6 ::= Integer ;
 ETrue.       Expr6 ::= "true" ;
 EFalse.      Expr6 ::= "false" ;
 EString.     Expr6 ::= String ;
@@ -91,7 +90,9 @@ EParen.      Expr6 ::= "(" Expr ")" ;
 EProc.       Expr6 ::= Proc ;
 ELamb.       Expr6 ::= Lambda ;
 ECall.       Expr6 ::= Expr6 "(" [Expr] ")" ;
+EStringify.  Expr6 ::= "to_str" "(" Expr ")" ;
 EArr.        Expr6 ::= "[" [Expr] "]" ;
+EArrRead.    Expr6 ::= Ident "[" Expr "]" ;
 
 Neg.         Expr5 ::= "-" Expr6 ;
 Not.         Expr5 ::= "!" Expr5 ;

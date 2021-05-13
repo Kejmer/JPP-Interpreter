@@ -5,22 +5,24 @@ def int as_block() do
     return 1;
 end;
 
-def void as_lambda(int _) void lambda(int x) do 
+def void as_lambda(int unimportant) void lambda(int x) do # nazwa zmiennej nie ma znaczenia jeśli podajemy potem lambdę
     print(x);
 end;
 
 def int main() do
     after_main();
     int x = 1;
-    void lambda() mut block = void lambda() do end;
-    if (x == 1) 
-        block = void lambda do
+    void lambda(void) mut block = void lambda() do end;
+    if (x == 1) do 
+        block = void lambda() do
             print(1);
-        end
-    else
-        block = void lambda do
+        end;
+    end
+    else do
+        block = void lambda() do
             print(2);
-        end  
+        end;
+    end;
 
     def void dynamic() block; 
     int x = 2;
