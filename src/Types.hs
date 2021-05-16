@@ -51,10 +51,10 @@ data BasicType
     | Bool
     | Void
     | Fun BasicType [Type]
-    | Proc BasicType [Type]
+    | Proc BasicType [Arg] [Type]
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
-data Proc = PDec [Arg] Block
+data Proc = PDec [Arg] [Arg] Block
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 data Lambda = LDec BasicType [Arg] Block
