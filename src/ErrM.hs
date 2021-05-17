@@ -36,14 +36,14 @@ instance MonadFail Err where
   fail = Bad
 #endif
 
-instance Alternative Err where
-  empty           = Left "Err.empty"
-  (<|>) Left{}    = id
-  (<|>) x@Right{} = const x
+-- instance Alternative Err where
+--   empty           = Left "Err.empty"
+--   (<|>) Left{}    = id
+--   (<|>) x@Right{} = const x
 
-instance MonadPlus Err where
-  mzero = empty
-  mplus = (<|>)
+-- instance MonadPlus Err where
+--   mzero = empty
+--   mplus = (<|>)
 
 #else
 ---------------------------------------------------------------------------

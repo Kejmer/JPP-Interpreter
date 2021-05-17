@@ -19,7 +19,7 @@ transIdent x = case x of
 
 transProgram :: Types.Program -> Result
 transProgram x = case x of
-  Types.Program stmts -> failure x
+  Types.MyProgram stmts -> failure x
 
 transBlock :: Types.Block -> Result
 transBlock x = case x of
@@ -62,11 +62,11 @@ transBasicType x = case x of
   Types.Bool -> failure x
   Types.Void -> failure x
   Types.Fun basictype types -> failure x
-  Types.Proc basictype types -> failure x
+  Types.TProc basictype args types -> failure x
 
 transProc :: Types.Proc -> Result
 transProc x = case x of
-  Types.PDec args block -> failure x
+  Types.PDec args1 args2 block -> failure x
 
 transLambda :: Types.Lambda -> Result
 transLambda x = case x of

@@ -78,7 +78,7 @@ String  :: { String }
 String   : L_quoted { $1 }
 
 Program :: { Syntax.Abs.Program }
-Program : ListStmt { Syntax.Abs.Program $1 }
+Program : ListStmt { Syntax.Abs.MyProgram $1 }
 
 Block :: { Syntax.Abs.Block }
 Block : 'do' ListStmt 'end' { Syntax.Abs.Blok $2 }
@@ -125,7 +125,7 @@ BasicType : BasicType '[]' { Syntax.Abs.Arr $1 }
           | 'bool' { Syntax.Abs.Bool }
           | 'void' { Syntax.Abs.Void }
           | BasicType 'lambda' '(' ListType ')' { Syntax.Abs.Fun $1 $4 }
-          | BasicType 'proc' '(' ListType ')' { Syntax.Abs.Proc $1 $4 }
+          | BasicType 'proc' '[' ListArg ']' '(' ListType ')' { Syntax.Abs.TProc $1 $4 $7 }
 
 ListBasicType :: { [Syntax.Abs.BasicType] }
 ListBasicType : {- empty -} { [] }
@@ -133,7 +133,7 @@ ListBasicType : {- empty -} { [] }
               | BasicType ',' ListBasicType { (:) $1 $3 }
 
 Proc :: { Syntax.Abs.Proc }
-Proc : 'proc' '(' ListArg ')' Block { Syntax.Abs.PDec $3 $5 }
+Proc : 'proc' '[' ListArg ']' '(' ListArg ')' Block { Syntax.Abs.PDec $3 $6 $8 }
 
 Lambda :: { Syntax.Abs.Lambda }
 Lambda : BasicType 'lambda' '(' ListArg ')' Block { Syntax.Abs.LDec $1 $4 $6 }

@@ -10,8 +10,7 @@ module Types where
 import Prelude (Integer, String, Bool)
 import qualified Prelude as C (Eq, Ord, Show, Read)
 import qualified Data.String
-
-data Program = Program [Stmt]
+data Program = MyProgram [Stmt]
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 data Block = Blok [Stmt]
@@ -51,7 +50,7 @@ data BasicType
     | Bool
     | Void
     | Fun BasicType [Type]
-    | Proc BasicType [Arg] [Type]
+    | TProc BasicType [Arg] [Type]
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 data Proc = PDec [Arg] [Arg] Block

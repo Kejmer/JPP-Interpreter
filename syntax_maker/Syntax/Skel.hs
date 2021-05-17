@@ -19,7 +19,7 @@ transIdent x = case x of
 
 transProgram :: Syntax.Abs.Program -> Result
 transProgram x = case x of
-  Syntax.Abs.Program stmts -> failure x
+  Syntax.Abs.MyProgram stmts -> failure x
 
 transBlock :: Syntax.Abs.Block -> Result
 transBlock x = case x of
@@ -62,11 +62,11 @@ transBasicType x = case x of
   Syntax.Abs.Bool -> failure x
   Syntax.Abs.Void -> failure x
   Syntax.Abs.Fun basictype types -> failure x
-  Syntax.Abs.Proc basictype types -> failure x
+  Syntax.Abs.TProc basictype args types -> failure x
 
 transProc :: Syntax.Abs.Proc -> Result
 transProc x = case x of
-  Syntax.Abs.PDec args block -> failure x
+  Syntax.Abs.PDec args1 args2 block -> failure x
 
 transLambda :: Syntax.Abs.Lambda -> Result
 transLambda x = case x of

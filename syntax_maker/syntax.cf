@@ -30,7 +30,7 @@
 
 ------------------------- programs ---------------------------
 entrypoints  Program ;
-Program.     Program ::= [Stmt] ;
+MyProgram.   Program ::= [Stmt] ;
 
 ------------------------- stmt -------------------------------
 Blok.        Block ::= "do" [Stmt] "end" ;
@@ -65,11 +65,11 @@ Str.         BasicType ::= "string" ;
 Bool.        BasicType ::= "bool" ;
 Void.        BasicType ::= "void" ;
 Fun.         BasicType ::= BasicType "lambda" "(" [Type] ")" ;
-Proc.        BasicType ::= BasicType "proc" "(" [Type] ")" ;
+TProc.       BasicType ::= BasicType "proc" "[" [Arg] "]" "(" [Type] ")" ;
 separator    BasicType "," ;
 
 ------------------------ functions ---------------------------
-PDec.        Proc ::= "proc" "(" [Arg] ")" Block ;
+PDec.        Proc ::= "proc" "[" [Arg] "]" "(" [Arg] ")" Block ;
 LDec.        Lambda ::= BasicType "lambda" "(" [Arg] ")" Block ;
 FProc.       PBlock ::= Proc ;
 FBlok.       PBlock ::= Block ;

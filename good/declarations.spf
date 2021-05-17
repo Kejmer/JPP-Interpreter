@@ -1,4 +1,4 @@
-def void as_proc() proc() do 
+def void as_proc() proc [] () do 
 end;
 
 def int as_block() do 

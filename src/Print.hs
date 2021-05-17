@@ -112,7 +112,7 @@ instance Print Types.Ident where
 
 instance Print Types.Program where
   prt i = \case
-    Types.Program stmts -> prPrec i 0 (concatD [prt 0 stmts])
+    Types.MyProgram stmts -> prPrec i 0 (concatD [prt 0 stmts])
 
 instance Print Types.Block where
   prt i = \case
@@ -166,7 +166,7 @@ instance Print Types.BasicType where
     Types.Bool -> prPrec i 0 (concatD [doc (showString "bool")])
     Types.Void -> prPrec i 0 (concatD [doc (showString "void")])
     Types.Fun basictype types -> prPrec i 0 (concatD [prt 0 basictype, doc (showString "lambda"), doc (showString "("), prt 0 types, doc (showString ")")])
-    Types.Proc basictype types -> prPrec i 0 (concatD [prt 0 basictype, doc (showString "proc"), doc (showString "("), prt 0 types, doc (showString ")")])
+    Types.TProc basictype args types -> prPrec i 0 (concatD [prt 0 basictype, doc (showString "proc"), doc (showString "["), prt 0 args, doc (showString "]"), doc (showString "("), prt 0 types, doc (showString ")")])
   prtList _ [] = concatD []
   prtList _ [x] = concatD [prt 0 x]
   prtList _ (x:xs) = concatD [prt 0 x, doc (showString ","), prt 0 xs]
@@ -176,7 +176,7 @@ instance Print [Types.BasicType] where
 
 instance Print Types.Proc where
   prt i = \case
-    Types.PDec args block -> prPrec i 0 (concatD [doc (showString "proc"), doc (showString "("), prt 0 args, doc (showString ")"), prt 0 block])
+    Types.PDec args1 args2 block -> prPrec i 0 (concatD [doc (showString "proc"), doc (showString "["), prt 0 args1, doc (showString "]"), doc (showString "("), prt 0 args2, doc (showString ")"), prt 0 block])
 
 instance Print Types.Lambda where
   prt i = \case

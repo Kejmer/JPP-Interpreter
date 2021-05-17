@@ -88,11 +88,11 @@ All other symbols are terminals.
   |  |  **|**  | ``bool``
   |  |  **|**  | ``void``
   |  |  **|**  | //BasicType// ``lambda`` ``(`` //[Type]// ``)``
-  |  |  **|**  | //BasicType// ``proc`` ``(`` //[Type]// ``)``
+  |  |  **|**  | //BasicType// ``proc`` ``[`` //[Arg]// ``]`` ``(`` //[Type]// ``)``
   | //[BasicType]// | -> | **eps**
   |  |  **|**  | //BasicType//
   |  |  **|**  | //BasicType// ``,`` //[BasicType]//
-  | //Proc// | -> | ``proc`` ``(`` //[Arg]// ``)`` //Block//
+  | //Proc// | -> | ``proc`` ``[`` //[Arg]// ``]`` ``(`` //[Arg]// ``)`` //Block//
   | //Lambda// | -> | //BasicType// ``lambda`` ``(`` //[Arg]// ``)`` //Block//
   | //PBlock// | -> | //Proc//
   |  |  **|**  | //Block//

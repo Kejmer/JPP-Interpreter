@@ -112,7 +112,7 @@ instance Print Syntax.Abs.Ident where
 
 instance Print Syntax.Abs.Program where
   prt i = \case
-    Syntax.Abs.Program stmts -> prPrec i 0 (concatD [prt 0 stmts])
+    Syntax.Abs.MyProgram stmts -> prPrec i 0 (concatD [prt 0 stmts])
 
 instance Print Syntax.Abs.Block where
   prt i = \case
@@ -166,7 +166,7 @@ instance Print Syntax.Abs.BasicType where
     Syntax.Abs.Bool -> prPrec i 0 (concatD [doc (showString "bool")])
     Syntax.Abs.Void -> prPrec i 0 (concatD [doc (showString "void")])
     Syntax.Abs.Fun basictype types -> prPrec i 0 (concatD [prt 0 basictype, doc (showString "lambda"), doc (showString "("), prt 0 types, doc (showString ")")])
-    Syntax.Abs.Proc basictype types -> prPrec i 0 (concatD [prt 0 basictype, doc (showString "proc"), doc (showString "("), prt 0 types, doc (showString ")")])
+    Syntax.Abs.TProc basictype args types -> prPrec i 0 (concatD [prt 0 basictype, doc (showString "proc"), doc (showString "["), prt 0 args, doc (showString "]"), doc (showString "("), prt 0 types, doc (showString ")")])
   prtList _ [] = concatD []
   prtList _ [x] = concatD [prt 0 x]
   prtList _ (x:xs) = concatD [prt 0 x, doc (showString ","), prt 0 xs]
@@ -176,7 +176,7 @@ instance Print [Syntax.Abs.BasicType] where
 
 instance Print Syntax.Abs.Proc where
   prt i = \case
-    Syntax.Abs.PDec args block -> prPrec i 0 (concatD [doc (showString "proc"), doc (showString "("), prt 0 args, doc (showString ")"), prt 0 block])
+    Syntax.Abs.PDec args1 args2 block -> prPrec i 0 (concatD [doc (showString "proc"), doc (showString "["), prt 0 args1, doc (showString "]"), doc (showString "("), prt 0 args2, doc (showString ")"), prt 0 block])
 
 instance Print Syntax.Abs.Lambda where
   prt i = \case

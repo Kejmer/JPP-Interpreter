@@ -61,11 +61,11 @@ Grammar
 	BasicType -> 'bool'                                (35)
 	BasicType -> 'void'                                (36)
 	BasicType -> BasicType 'lambda' '(' ListType ')'   (37)
-	BasicType -> BasicType 'proc' '(' ListType ')'     (38)
+	BasicType -> BasicType 'proc' '[' ListArg ']' '(' ListType ')'   (38)
 	ListBasicType ->                                   (39)
 	ListBasicType -> BasicType                         (40)
 	ListBasicType -> BasicType ',' ListBasicType       (41)
-	Proc -> 'proc' '(' ListArg ')' Block               (42)
+	Proc -> 'proc' '[' ListArg ']' '(' ListArg ')' Block   (42)
 	Lambda -> BasicType 'lambda' '(' ListArg ')' Block   (43)
 	PBlock -> Proc                                     (44)
 	PBlock -> Block                                    (45)
@@ -395,7 +395,7 @@ State 10
 	Stmt -> BasicType . Ident '=' Expr                  (rule 10)
 	BasicType -> BasicType . '[]'                       (rule 32)
 	BasicType -> BasicType . 'lambda' '(' ListType ')'    (rule 37)
-	BasicType -> BasicType . 'proc' '(' ListType ')'    (rule 38)
+	BasicType -> BasicType . 'proc' '[' ListArg ']' '(' ListType ')'    (rule 38)
 	Lambda -> BasicType . 'lambda' '(' ListArg ')' Block    (rule 43)
 
 	'[]'           shift, and enter state 75
@@ -894,9 +894,9 @@ State 31
 
 State 32
 
-	Proc -> 'proc' . '(' ListArg ')' Block              (rule 42)
+	Proc -> 'proc' . '[' ListArg ']' '(' ListArg ')' Block    (rule 42)
 
-	'('            shift, and enter state 46
+	'['            shift, and enter state 46
 
 
 State 33
@@ -1151,7 +1151,7 @@ State 44
 
 	BasicType -> BasicType . '[]'                       (rule 32)
 	BasicType -> BasicType . 'lambda' '(' ListType ')'    (rule 37)
-	BasicType -> BasicType . 'proc' '(' ListType ')'    (rule 38)
+	BasicType -> BasicType . 'proc' '[' ListArg ']' '(' ListType ')'    (rule 38)
 	Lambda -> BasicType . 'lambda' '(' ListArg ')' Block    (rule 43)
 
 	'[]'           shift, and enter state 75
@@ -1171,11 +1171,11 @@ State 45
 
 State 46
 
-	Proc -> 'proc' '(' . ListArg ')' Block              (rule 42)
+	Proc -> 'proc' '[' . ListArg ']' '(' ListArg ')' Block    (rule 42)
 
 	'&'            shift, and enter state 108
 	'&mut'         shift, and enter state 109
-	')'            reduce using rule 48
+	']'            reduce using rule 48
 	'bool'         shift, and enter state 24
 	'int'          shift, and enter state 30
 	'mut'          shift, and enter state 110
@@ -1279,7 +1279,7 @@ State 51
 	Stmt -> 'def' BasicType . Ident '(' ListArg ')' Lambda    (rule 22)
 	BasicType -> BasicType . '[]'                       (rule 32)
 	BasicType -> BasicType . 'lambda' '(' ListType ')'    (rule 37)
-	BasicType -> BasicType . 'proc' '(' ListType ')'    (rule 38)
+	BasicType -> BasicType . 'proc' '[' ListArg ']' '(' ListType ')'    (rule 38)
 
 	'[]'           shift, and enter state 75
 	'lambda'       shift, and enter state 99
@@ -1834,9 +1834,9 @@ State 77
 
 State 78
 
-	BasicType -> BasicType 'proc' . '(' ListType ')'    (rule 38)
+	BasicType -> BasicType 'proc' . '[' ListArg ']' '(' ListType ')'    (rule 38)
 
-	'('            shift, and enter state 85
+	'['            shift, and enter state 85
 
 
 State 79
@@ -1962,7 +1962,7 @@ State 82
 	Expr6 -> Ident '[' Expr . ']'                       (rule 62)
 	Expr -> Expr . '||' Expr                            (rule 75)
 
-	']'            shift, and enter state 136
+	']'            shift, and enter state 135
 	'||'           shift, and enter state 57
 
 
@@ -1986,20 +1986,21 @@ State 84
 
 State 85
 
-	BasicType -> BasicType 'proc' '(' . ListType ')'    (rule 38)
+	BasicType -> BasicType 'proc' '[' . ListArg ']' '(' ListType ')'    (rule 38)
 
 	'&'            shift, and enter state 108
 	'&mut'         shift, and enter state 109
-	')'            reduce using rule 29
+	']'            reduce using rule 48
 	'bool'         shift, and enter state 24
 	'int'          shift, and enter state 30
 	'mut'          shift, and enter state 110
 	'string'       shift, and enter state 34
 	'void'         shift, and enter state 37
 
-	Type           goto state 134
-	ListType       goto state 135
+	Type           goto state 104
 	BasicType      goto state 105
+	Arg            goto state 106
+	ListArg        goto state 134
 
 State 86
 
@@ -2410,7 +2411,7 @@ State 105
 	Type -> BasicType .                                 (rule 28)
 	BasicType -> BasicType . '[]'                       (rule 32)
 	BasicType -> BasicType . 'lambda' '(' ListType ')'    (rule 37)
-	BasicType -> BasicType . 'proc' '(' ListType ')'    (rule 38)
+	BasicType -> BasicType . 'proc' '[' ListArg ']' '(' ListType ')'    (rule 38)
 
 	')'            reduce using rule 28
 	','            reduce using rule 28
@@ -2427,13 +2428,14 @@ State 106
 
 	')'            reduce using rule 49
 	','            shift, and enter state 121
+	']'            reduce using rule 49
 
 
 State 107
 
-	Proc -> 'proc' '(' ListArg . ')' Block              (rule 42)
+	Proc -> 'proc' '[' ListArg . ']' '(' ListArg ')' Block    (rule 42)
 
-	')'            shift, and enter state 120
+	']'            shift, and enter state 120
 
 
 State 108
@@ -2606,7 +2608,7 @@ State 117
 	Type -> 'mut' BasicType .                           (rule 27)
 	BasicType -> BasicType . '[]'                       (rule 32)
 	BasicType -> BasicType . 'lambda' '(' ListType ')'    (rule 37)
-	BasicType -> BasicType . 'proc' '(' ListType ')'    (rule 38)
+	BasicType -> BasicType . 'proc' '[' ListArg ']' '(' ListType ')'    (rule 38)
 
 	')'            reduce using rule 27
 	','            reduce using rule 27
@@ -2621,7 +2623,7 @@ State 118
 	Type -> '&mut' BasicType .                          (rule 26)
 	BasicType -> BasicType . '[]'                       (rule 32)
 	BasicType -> BasicType . 'lambda' '(' ListType ')'    (rule 37)
-	BasicType -> BasicType . 'proc' '(' ListType ')'    (rule 38)
+	BasicType -> BasicType . 'proc' '[' ListArg ']' '(' ListType ')'    (rule 38)
 
 	')'            reduce using rule 26
 	','            reduce using rule 26
@@ -2636,7 +2638,7 @@ State 119
 	Type -> '&' BasicType .                             (rule 25)
 	BasicType -> BasicType . '[]'                       (rule 32)
 	BasicType -> BasicType . 'lambda' '(' ListType ')'    (rule 37)
-	BasicType -> BasicType . 'proc' '(' ListType ')'    (rule 38)
+	BasicType -> BasicType . 'proc' '[' ListArg ']' '(' ListType ')'    (rule 38)
 
 	')'            reduce using rule 25
 	','            reduce using rule 25
@@ -2648,11 +2650,10 @@ State 119
 
 State 120
 
-	Proc -> 'proc' '(' ListArg ')' . Block              (rule 42)
+	Proc -> 'proc' '[' ListArg ']' . '(' ListArg ')' Block    (rule 42)
 
-	'do'           shift, and enter state 26
+	'('            shift, and enter state 151
 
-	Block          goto state 151
 
 State 121
 
@@ -2661,6 +2662,7 @@ State 121
 	'&'            shift, and enter state 108
 	'&mut'         shift, and enter state 109
 	')'            reduce using rule 48
+	']'            reduce using rule 48
 	'bool'         shift, and enter state 24
 	'int'          shift, and enter state 30
 	'mut'          shift, and enter state 110
@@ -2678,6 +2680,7 @@ State 122
 
 	')'            reduce using rule 47
 	','            reduce using rule 47
+	']'            reduce using rule 47
 
 
 State 123
@@ -2747,7 +2750,7 @@ State 125
 	'string'       shift, and enter state 34
 	'void'         shift, and enter state 37
 
-	Type           goto state 134
+	Type           goto state 143
 	ListType       goto state 131
 	BasicType      goto state 105
 
@@ -2768,7 +2771,7 @@ State 126
 	Type           goto state 104
 	BasicType      goto state 105
 	Arg            goto state 106
-	ListArg        goto state 143
+	ListArg        goto state 142
 
 State 127
 
@@ -2821,7 +2824,7 @@ State 130
 	Arg -> Type . Ident                                 (rule 47)
 
 	')'            reduce using rule 30
-	','            shift, and enter state 139
+	','            shift, and enter state 141
 	L_Ident        shift, and enter state 2
 
 	Ident          goto state 122
@@ -2830,14 +2833,14 @@ State 131
 
 	BasicType -> BasicType 'lambda' '(' ListType . ')'    (rule 37)
 
-	')'            shift, and enter state 142
+	')'            shift, and enter state 140
 
 
 State 132
 
 	Lambda -> BasicType 'lambda' '(' ListArg . ')' Block    (rule 43)
 
-	')'            shift, and enter state 141
+	')'            shift, and enter state 139
 
 
 State 133
@@ -2872,25 +2875,16 @@ State 133
 	Expr3          goto state 16
 	Expr2          goto state 17
 	Expr1          goto state 18
-	Expr           goto state 140
+	Expr           goto state 138
 
 State 134
 
-	ListType -> Type .                                  (rule 30)
-	ListType -> Type . ',' ListType                     (rule 31)
+	BasicType -> BasicType 'proc' '[' ListArg . ']' '(' ListType ')'    (rule 38)
 
-	')'            reduce using rule 30
-	','            shift, and enter state 139
+	']'            shift, and enter state 137
 
 
 State 135
-
-	BasicType -> BasicType 'proc' '(' ListType . ')'    (rule 38)
-
-	')'            shift, and enter state 138
-
-
-State 136
 
 	Stmt -> Ident '[' Expr ']' . '=' Expr               (rule 12)
 	Expr6 -> Ident '[' Expr ']' .                       (rule 62)
@@ -2906,7 +2900,7 @@ State 136
 	';'            reduce using rule 62
 	'<'            reduce using rule 62
 	'<='           reduce using rule 62
-	'='            shift, and enter state 137
+	'='            shift, and enter state 136
 	'=='           reduce using rule 62
 	'>'            reduce using rule 62
 	'>='           reduce using rule 62
@@ -2914,7 +2908,7 @@ State 136
 	'||'           reduce using rule 62
 
 
-State 137
+State 136
 
 	Stmt -> Ident '[' Expr ']' '=' . Expr               (rule 12)
 
@@ -2946,39 +2940,16 @@ State 137
 	Expr3          goto state 16
 	Expr2          goto state 17
 	Expr1          goto state 18
-	Expr           goto state 159
+	Expr           goto state 161
+
+State 137
+
+	BasicType -> BasicType 'proc' '[' ListArg ']' . '(' ListType ')'    (rule 38)
+
+	'('            shift, and enter state 160
+
 
 State 138
-
-	BasicType -> BasicType 'proc' '(' ListType ')' .    (rule 38)
-
-	')'            reduce using rule 38
-	','            reduce using rule 38
-	'[]'           reduce using rule 38
-	'lambda'       reduce using rule 38
-	'mut'          reduce using rule 38
-	'proc'         reduce using rule 38
-	L_Ident        reduce using rule 38
-
-
-State 139
-
-	ListType -> Type ',' . ListType                     (rule 31)
-
-	'&'            shift, and enter state 108
-	'&mut'         shift, and enter state 109
-	')'            reduce using rule 29
-	'bool'         shift, and enter state 24
-	'int'          shift, and enter state 30
-	'mut'          shift, and enter state 110
-	'string'       shift, and enter state 34
-	'void'         shift, and enter state 37
-
-	Type           goto state 134
-	ListType       goto state 158
-	BasicType      goto state 105
-
-State 140
 
 	Stmt -> BasicType 'mut' Ident '=' Expr .            (rule 9)
 	Expr -> Expr . '||' Expr                            (rule 75)
@@ -2988,15 +2959,15 @@ State 140
 	'||'           shift, and enter state 57
 
 
-State 141
+State 139
 
 	Lambda -> BasicType 'lambda' '(' ListArg ')' . Block    (rule 43)
 
 	'do'           shift, and enter state 26
 
-	Block          goto state 157
+	Block          goto state 159
 
-State 142
+State 140
 
 	BasicType -> BasicType 'lambda' '(' ListType ')' .    (rule 37)
 
@@ -3009,12 +2980,38 @@ State 142
 	L_Ident        reduce using rule 37
 
 
-State 143
+State 141
+
+	ListType -> Type ',' . ListType                     (rule 31)
+
+	'&'            shift, and enter state 108
+	'&mut'         shift, and enter state 109
+	')'            reduce using rule 29
+	'bool'         shift, and enter state 24
+	'int'          shift, and enter state 30
+	'mut'          shift, and enter state 110
+	'string'       shift, and enter state 34
+	'void'         shift, and enter state 37
+
+	Type           goto state 143
+	ListType       goto state 158
+	BasicType      goto state 105
+
+State 142
 
 	Stmt -> 'def' BasicType Ident '(' ListArg . ')' PBlock    (rule 21)
 	Stmt -> 'def' BasicType Ident '(' ListArg . ')' Lambda    (rule 22)
 
-	')'            shift, and enter state 156
+	')'            shift, and enter state 157
+
+
+State 143
+
+	ListType -> Type .                                  (rule 30)
+	ListType -> Type . ',' ListType                     (rule 31)
+
+	')'            reduce using rule 30
+	','            shift, and enter state 141
 
 
 State 144
@@ -3068,7 +3065,7 @@ State 146
 	Stmt -> 'if' '(' Expr ')' HBlock . 'else' HBlock    (rule 15)
 
 	';'            reduce using rule 14
-	'else'         shift, and enter state 155
+	'else'         shift, and enter state 156
 			(reduce using rule 14)
 
 
@@ -3078,7 +3075,7 @@ State 147
 	HBlock -> Stmt .                                    (rule 7)
 	Stmt -> Stmt . ';'                                  (rule 20)
 
-	';'            shift, and enter state 154
+	';'            shift, and enter state 155
 			(reduce using rule 7)
 
 	'else'         reduce using rule 7
@@ -3124,33 +3121,26 @@ State 150
 	ListArg -> Arg ',' ListArg .                        (rule 50)
 
 	')'            reduce using rule 50
+	']'            reduce using rule 50
 
 
 State 151
 
-	Proc -> 'proc' '(' ListArg ')' Block .              (rule 42)
+	Proc -> 'proc' '[' ListArg ']' '(' . ListArg ')' Block    (rule 42)
 
-	'!='           reduce using rule 42
-	'%'            reduce using rule 42
-	'&&'           reduce using rule 42
-	'('            reduce using rule 42
-	')'            reduce using rule 42
-	'*'            reduce using rule 42
-	'+'            reduce using rule 42
-	','            reduce using rule 42
-	'-'            reduce using rule 42
-	'/'            reduce using rule 42
-	';'            reduce using rule 42
-	'<'            reduce using rule 42
-	'<='           reduce using rule 42
-	'=='           reduce using rule 42
-	'>'            reduce using rule 42
-	'>='           reduce using rule 42
-	']'            reduce using rule 42
-	'else'         reduce using rule 42
-	'proc'         reduce using rule 42
-	'||'           reduce using rule 42
+	'&'            shift, and enter state 108
+	'&mut'         shift, and enter state 109
+	')'            reduce using rule 48
+	'bool'         shift, and enter state 24
+	'int'          shift, and enter state 30
+	'mut'          shift, and enter state 110
+	'string'       shift, and enter state 34
+	'void'         shift, and enter state 37
 
+	Type           goto state 104
+	BasicType      goto state 105
+	Arg            goto state 106
+	ListArg        goto state 154
 
 State 152
 
@@ -3188,13 +3178,20 @@ State 153
 
 State 154
 
+	Proc -> 'proc' '[' ListArg ']' '(' ListArg . ')' Block    (rule 42)
+
+	')'            shift, and enter state 169
+
+
+State 155
+
 	Stmt -> Stmt ';' .                                  (rule 20)
 
 	';'            reduce using rule 20
 	'else'         reduce using rule 20
 
 
-State 155
+State 156
 
 	Stmt -> 'if' '(' Expr ')' HBlock 'else' . HBlock    (rule 15)
 
@@ -3225,7 +3222,7 @@ State 155
 	Integer        goto state 4
 	String         goto state 5
 	Block          goto state 145
-	HBlock         goto state 165
+	HBlock         goto state 168
 	Stmt           goto state 147
 	BasicType      goto state 10
 	Proc           goto state 148
@@ -3239,7 +3236,7 @@ State 155
 	Expr1          goto state 18
 	Expr           goto state 19
 
-State 156
+State 157
 
 	Stmt -> 'def' BasicType Ident '(' ListArg ')' . PBlock    (rule 21)
 	Stmt -> 'def' BasicType Ident '(' ListArg ')' . Lambda    (rule 22)
@@ -3252,14 +3249,21 @@ State 156
 	'void'         shift, and enter state 37
 	L_Ident        shift, and enter state 2
 
-	Ident          goto state 160
-	Block          goto state 161
+	Ident          goto state 163
+	Block          goto state 164
 	BasicType      goto state 44
-	Proc           goto state 162
-	Lambda         goto state 163
-	PBlock         goto state 164
+	Proc           goto state 165
+	Lambda         goto state 166
+	PBlock         goto state 167
 
-State 157
+State 158
+
+	ListType -> Type ',' ListType .                     (rule 31)
+
+	')'            reduce using rule 31
+
+
+State 159
 
 	Lambda -> BasicType 'lambda' '(' ListArg ')' Block .    (rule 43)
 
@@ -3285,14 +3289,24 @@ State 157
 	'||'           reduce using rule 43
 
 
-State 158
+State 160
 
-	ListType -> Type ',' ListType .                     (rule 31)
+	BasicType -> BasicType 'proc' '[' ListArg ']' '(' . ListType ')'    (rule 38)
 
-	')'            reduce using rule 31
+	'&'            shift, and enter state 108
+	'&mut'         shift, and enter state 109
+	')'            reduce using rule 29
+	'bool'         shift, and enter state 24
+	'int'          shift, and enter state 30
+	'mut'          shift, and enter state 110
+	'string'       shift, and enter state 34
+	'void'         shift, and enter state 37
 
+	Type           goto state 143
+	ListType       goto state 162
+	BasicType      goto state 105
 
-State 159
+State 161
 
 	Stmt -> Ident '[' Expr ']' '=' Expr .               (rule 12)
 	Expr -> Expr . '||' Expr                            (rule 75)
@@ -3302,7 +3316,14 @@ State 159
 	'||'           shift, and enter state 57
 
 
-State 160
+State 162
+
+	BasicType -> BasicType 'proc' '[' ListArg ']' '(' ListType . ')'    (rule 38)
+
+	')'            shift, and enter state 171
+
+
+State 163
 
 	PBlock -> Ident .                                   (rule 46)
 
@@ -3310,7 +3331,7 @@ State 160
 	'else'         reduce using rule 46
 
 
-State 161
+State 164
 
 	PBlock -> Block .                                   (rule 45)
 
@@ -3318,7 +3339,7 @@ State 161
 	'else'         reduce using rule 45
 
 
-State 162
+State 165
 
 	PBlock -> Proc .                                    (rule 44)
 
@@ -3326,7 +3347,7 @@ State 162
 	'else'         reduce using rule 44
 
 
-State 163
+State 166
 
 	Stmt -> 'def' BasicType Ident '(' ListArg ')' Lambda .    (rule 22)
 
@@ -3334,7 +3355,7 @@ State 163
 	'else'         reduce using rule 22
 
 
-State 164
+State 167
 
 	Stmt -> 'def' BasicType Ident '(' ListArg ')' PBlock .    (rule 21)
 
@@ -3342,12 +3363,59 @@ State 164
 	'else'         reduce using rule 21
 
 
-State 165
+State 168
 
 	Stmt -> 'if' '(' Expr ')' HBlock 'else' HBlock .    (rule 15)
 
 	';'            reduce using rule 15
 	'else'         reduce using rule 15
+
+
+State 169
+
+	Proc -> 'proc' '[' ListArg ']' '(' ListArg ')' . Block    (rule 42)
+
+	'do'           shift, and enter state 26
+
+	Block          goto state 170
+
+State 170
+
+	Proc -> 'proc' '[' ListArg ']' '(' ListArg ')' Block .    (rule 42)
+
+	'!='           reduce using rule 42
+	'%'            reduce using rule 42
+	'&&'           reduce using rule 42
+	'('            reduce using rule 42
+	')'            reduce using rule 42
+	'*'            reduce using rule 42
+	'+'            reduce using rule 42
+	','            reduce using rule 42
+	'-'            reduce using rule 42
+	'/'            reduce using rule 42
+	';'            reduce using rule 42
+	'<'            reduce using rule 42
+	'<='           reduce using rule 42
+	'=='           reduce using rule 42
+	'>'            reduce using rule 42
+	'>='           reduce using rule 42
+	']'            reduce using rule 42
+	'else'         reduce using rule 42
+	'proc'         reduce using rule 42
+	'||'           reduce using rule 42
+
+
+State 171
+
+	BasicType -> BasicType 'proc' '[' ListArg ']' '(' ListType ')' .    (rule 38)
+
+	')'            reduce using rule 38
+	','            reduce using rule 38
+	'[]'           reduce using rule 38
+	'lambda'       reduce using rule 38
+	'mut'          reduce using rule 38
+	'proc'         reduce using rule 38
+	L_Ident        reduce using rule 38
 
 
 -----------------------------------------------------------------------------
@@ -3356,4 +3424,4 @@ Grammar Totals
 Number of rules: 91
 Number of terminals: 46
 Number of non-terminals: 29
-Number of states: 166
+Number of states: 172
