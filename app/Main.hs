@@ -3,7 +3,7 @@ module Main where
 import System.Environment ( getArgs, getProgName )
 import Par   ( pProgram, myLexer )
 
-import Interpreter
+import Runner
 
 main :: IO ()
 main = do
