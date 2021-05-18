@@ -25,10 +25,10 @@ source-repository head
 library
   exposed-modules:
       ErrM
-      Interpreter
       Lex
       Par
       Print
+      Runner
       Skel
       StaticTypeChecker
       Types

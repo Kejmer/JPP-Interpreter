@@ -33,8 +33,8 @@ transHBlock x = case x of
 transStmt :: Syntax.Abs.Stmt -> Result
 transStmt x = case x of
   Syntax.Abs.BStmt block -> failure x
-  Syntax.Abs.DeclMut basictype ident expr -> failure x
   Syntax.Abs.DeclConst basictype ident expr -> failure x
+  Syntax.Abs.DeclMut basictype ident expr -> failure x
   Syntax.Abs.Ass ident expr -> failure x
   Syntax.Abs.ArrAss ident expr1 expr2 -> failure x
   Syntax.Abs.Ret expr -> failure x

@@ -38,11 +38,11 @@ getLocAux name env =
     if Data.Map.member name local
     then Ok (fromJust $ Data.Map.lookup name local)
     else case parent_env env of
-        Nothing -> Bad "Called variable has no defined type"
+        Nothing -> Bad $ "Called variable has no defined type: " ++ show name
         Just parent -> getLocAux name parent
 
 getLoc :: Ident -> Context (Err Loc)
-getLoc name = do
+getLoc name =
     gets (getLocAux name . env)
 
 getTypeAux :: Err Loc -> Map Loc Type -> Err Type
@@ -87,7 +87,7 @@ declareAux name loc env = TypeEnv {
     local_env = insert name loc $ local_env env
 }
 
-declare :: Arg -> Context () 
+declare :: Arg -> Context ()
 declare (FArg typ name) = do
     loc <- newLoc
     context <- get
@@ -113,7 +113,7 @@ checkProgram (MyProgram tree) = evalState (typeCheckTree tree) emptyContext
 typeCheckTree :: [Stmt] -> Context (Err ())
 typeCheckTree tree = do
     main <- locateMainAndBuildContext tree (Bad "Couldn't find entrypoint (int main)")
-    case main of 
+    case main of
         Left y -> pure $ Left y
         Right x -> startAddToContextAux <$> typecheckStmt x
 
@@ -155,6 +155,10 @@ normalizeReturnType x y = do
     else if typ == typ' || typ' == Void then x
     else Left $ "Block returns two values of diffrent types " ++ show typ ++ " and " ++ show typ'
 
+isReturn :: Stmt -> Bool
+isReturn (Ret _) = True
+isReturn _ = False
+
 typecheckBlockAux :: [Stmt] -> Err BasicType -> Context (Err BasicType)
 typecheckBlockAux [] acc = pure acc
 typecheckBlockAux (x:xs) acc = do
@@ -163,16 +167,43 @@ typecheckBlockAux (x:xs) acc = do
         Left y -> pure res
         Right x -> typecheckBlockAux xs (normalizeReturnType acc res)
 
+typeCheckHPBlockAux :: BasicType -> Err BasicType
+typeCheckHPBlockAux (TProc typ _ args) =
+    if null args
+    then pure typ
+    else Left "Proc passed as a block should have no arguments"
+typeCheckPBlockAux x = Left $ "Expected proc, got " ++ show x
+
+typeCheckHPBlock :: PBlock -> Context (Err BasicType)
+typeCheckHPBlock (FProc (PDec externs args (Blok blok))) = do 
+    err <- assertExternsExist externs
+    typ <- typecheckBlock blok
+    pure $ case err of 
+        Left y -> Left y 
+        Right _ -> case typ of 
+            Left y -> Left y 
+            Right x -> typeCheckHPBlockAux (TProc x externs (argsToType args)) 
+typeCheckHPBlock (FBlok (Blok blok)) = typecheckBlock blok
+typeCheckHPBlock (FVar name) = do
+    typ <- getType name
+    err <- evalType (ECall (EVar name) [])
+    pure $ case err of 
+        Left y -> Left y 
+        Right _ -> typ >>= typeCheckHPBlockAux . extractBasicType
+
+typeCheckHBlock :: HBlock -> Context (Err BasicType)
+typeCheckHBlock (AsProc pblok) = typeCheckHPBlock pblok
+typeCheckHBlock (AsStmt stmt) = typecheckStmt stmt
 
 typecheckBlock :: [Stmt] -> Context (Err BasicType)
-typecheckBlock x = do 
-    pushEnv
-    res <- typecheckBlockAux x (Ok Void)
-    popEnv
-    pure res
+typecheckBlock x = typecheckBlockAux x (Ok Void)
 
 typecheckStmt :: Stmt -> Context (Err BasicType)
-typecheckStmt (BStmt (Blok block)) = typecheckBlock block
+typecheckStmt (BStmt (Blok block)) = do
+    pushEnv
+    res <- typecheckBlock block
+    popEnv
+    pure res
 typecheckStmt (DeclConst typ name expr) = do
     declare (FArg (Const typ) name)
     typ' <- assertBasicType typ expr
@@ -185,15 +216,44 @@ typecheckStmt (DeclMut typ name expr) = do
     pure $ case typ' of
         Right _ -> Ok Void
         Left y -> Left y
-typecheckStmt (Ass name expr) = pure $ Ok Void -- UNDEFINED
-typecheckStmt (ArrAss name expr1 expr2) = pure $ Ok Void -- UNDEFINED
-typecheckStmt (Ret expr) = do 
+typecheckStmt (Ass name expr) = do
+    res <- getType name
+    case res of
+        Left y -> pure $ Left y
+        Right x -> do
+            res' <- assertMutableType x expr
+            pure $ case res' of
+                Left y -> Left y
+                Right _ -> Right Void
+typecheckStmt (ArrAss name index_expr expr) = do
+    res <- getType name
+    ind <- assertBasicType Int index_expr
+    assigned_typ <- evalType expr
+    pure $ if null $ lefts [anyToUnit <$> (res >>= stripMutable >>= extractArrayType),
+        assertTypeFitsArray res assigned_typ,
+        anyToUnit <$> ind]
+    then Right Void
+    else Left "Error while trying to assing expression to an array"
+typecheckStmt (Ret expr) = do
     res <- evalType expr
-    pure $ extractBasicType <$> res 
-
-typecheckStmt (If expr hblok) = pure $ Ok Void -- UNDEFINED
-typecheckStmt (IfElse expr hblok_if hblok_else) = pure $ Ok Void -- UNDEFINED
-typecheckStmt (While expr hblock) = pure $ Ok Void -- UNDEFINED
+    pure $ extractBasicType <$> res
+typecheckStmt (If expr hblok) = do 
+    err <- assertBasicType Bool expr
+    case err of 
+        Left y -> pure $ Left y
+        Right _ -> typeCheckHBlock hblok
+typecheckStmt (IfElse expr hblok_if hblok_else) = do 
+    err <- typecheckStmt (If expr hblok_if)
+    err' <- typecheckStmt (If expr hblok_else)
+    pure $ case err of 
+        Left y -> Left y
+        Right x -> case err' of 
+            Left y -> Left y
+            Right x' -> if x == x' then err
+                else if x == Void || x' == Void 
+                    then if x == Void then err' else err
+                    else Left $ "If and else block returns two diffrent types " ++ show x ++ " and " ++ show x'  
+typecheckStmt (While expr hblok) = typecheckStmt (If expr hblok)
 typecheckStmt (Print expr) = do
     typ <- assertBasicType Str expr
     case typ of
@@ -206,30 +266,83 @@ typecheckStmt (For expr (PDec externs args (Blok blk))) = do
     popEnv
     pure $ if length args /= 1
     then Left "Proc passed to for has too many arguments"
-    else case assertTypeFitsArray arr_typ (head $ argsToType args) of
+    else case assertTypeFitsArray arr_typ (Ok $ head $ argsToType args) of
         Right x -> ret_typ
         Left y -> Left y
-
-typecheckStmt (SExp expr) = pure $ Ok Void -- UNDEFINED
-typecheckStmt (FDef typ name args (FProc p)) = pure $ Ok Void -- UNDEFINED
-typecheckStmt (FDef typ name args (FBlok (Blok blok))) = do 
-    addEnvFrame args 
+typecheckStmt (SExp expr) = do 
+    typ <- evalType expr
+    pure $ case extractBasicType <$> typ of
+        Right _ -> Ok Void
+        Left y -> Left y   
+typecheckStmt (FDef typ name args (FProc (PDec externs args' (Blok blok)))) = do 
+    if args /= args' then pure $ Left "Function definition have missmatched arguments"
+    else fDefWithProcAux typ name args externs blok 
+typecheckStmt (FDef typ name args (FBlok (Blok blok))) = do
     declare (FArg (buildFunType typ args) name)
-    res <- typecheckBlock blok 
-    popEnv 
-    pure $ case res of 
+    addEnvFrame args
+    res <- typecheckBlock blok
+    popEnv
+    pure $ case res of
         Left y -> Left y
-        Right x -> if x == typ then Ok Void 
+        Right x -> if x == typ then Ok Void
             else Left $ "Missmatched return types " ++ show x ++ " and " ++ show typ
-typecheckStmt (FDef typ name args (FVar p)) = pure $ Ok Void -- UNDEFINED
-typecheckStmt (FDefAlt typ name args blok) = pure $ Ok Void -- UNDEFINED
+typecheckStmt (FDef typ name args (FVar p)) = do 
+    typ'' <- getType p
+    case extractBasicType <$> typ'' of 
+        Left y -> pure $ Left y 
+        Right (Fun typ' types) -> fDefWithNameAux (FArg (Const $ Fun typ' types) name) args typ typ' types
+        Right (TProc typ' extern types) -> fDefWithNameAux (FArg (Const $ TProc typ' extern types) name) args typ typ' types
+        Right _ -> pure $ Left "Identifier provided to function declaration doesn't hold lambda/proc"
+
+typecheckStmt (FDefAlt typ name args (LDec typ' args' (Blok blk))) = do 
+   etyp <- evalType (ELamb (LDec typ' args' (Blok blk))) 
+   if typ /= typ' || argsToType args /= argsToType args then pure $ Left "Function lambda definition missmatch types"
+   else case etyp of 
+       Right t -> fDefWithLambdaAux (FArg t name)
+       Left y -> pure $ Left y
+            
+
+fDefWithLambdaAux :: Arg -> Context (Err BasicType)
+fDefWithLambdaAux arg = do 
+    declare arg 
+    pure $ Ok Void
+
+fDefWithNameAux :: Arg -> [Arg] -> BasicType -> BasicType -> [Type] -> Context (Err BasicType)
+fDefWithNameAux fun args typ typ' types = do 
+    declare fun 
+    pure $ if typ /= typ' then Left $ "In function definition by name, missmatched return types " ++ show typ ++ " and " ++ show typ'
+    else if argsToType args == types then Ok Void
+    else Left "In function definition by name, missmatched arguments types"
+
+fDefWithProcAux :: BasicType -> Ident -> [Arg] -> [Arg] -> [Stmt] -> Context (Err BasicType)
+fDefWithProcAux typ name args externs blok = do 
+    declare (FArg (buildProcType typ externs args) name)
+    addEnvFrame $ args ++ externs
+    res <- typecheckBlock blok
+    popEnv
+    pure $ case res of 
+        Left y -> Left y 
+        Right x -> if x == typ then Ok Void
+            else Left $ "Proc blok has no " ++ show typ ++ " returned value inside, but " ++ show x
+
+anyToUnit :: a -> ()
+anyToUnit _ = ()
+
+errToUnit :: Err a -> Err ()
+errToUnit x = anyToUnit <$> x
+
+stripMutable :: Type -> Err BasicType
+stripMutable (Mut x) = pure x
+stripMutable (MutRef x) = pure x
+stripMutable _ = Left "Tried to assing value to a constant"
 
 extractArrayType :: BasicType -> Err BasicType
 extractArrayType (Arr x) = pure x
 extractArrayType x = Left $ show x ++ " is not an Array!"
 
-assertTypeFitsArray :: Err Type -> Type -> Err ()
-assertTypeFitsArray arr' typ = do
+assertTypeFitsArray :: Err Type -> Err Type -> Err ()
+assertTypeFitsArray arr' typ' = do
+    typ <- typ'
     arr <- arr' >>= extractArrayType . extractBasicType
     if arr == extractBasicType typ
     then pure ()
@@ -256,11 +369,15 @@ assertType typ expr = do
     then pure next_type
     else pure $ missmatchedTypes (Ok typ) next_type
 
-assertMutableType :: BasicType -> Expr -> Context (Err Type)
-assertMutableType typ expr = do
-    typ1 <- assertType (MutRef typ) expr
-    typ2 <- assertType (Mut typ) expr
-    pure $ typ1 <|> typ2
+isMutable :: Type -> Bool
+isMutable (MutRef _) = True
+isMutable (Mut _) = True
+isMutable _ = False
+
+assertMutableType :: Type -> Expr -> Context (Err Type)
+assertMutableType (MutRef typ) expr = assertBasicType typ expr
+assertMutableType (Mut typ) expr = assertBasicType typ expr
+assertMutableType _ _ = pure $ Left "Tried to assing value to a constant"
 
 assertBasicType :: BasicType -> Expr -> Context (Err Type)
 assertBasicType typ expr = do
@@ -276,10 +393,10 @@ evalTypeArr typ (x:xs) = do
     if next_type == typ
     then evalTypeArr typ xs
     else pure $ missmatchedTypes typ next_type
-evalTypeArr typ [] = do 
-    pure $ case extractBasicType <$> typ of 
-        Right x -> Ok $ Const (Arr x) 
-        Left y -> Left y 
+evalTypeArr typ [] =
+    pure $ case extractBasicType <$> typ of
+        Right x -> Ok $ Const (Arr x)
+        Left y -> Left y
 
 assertSameBasicType :: Err Type -> Err Type -> Err BasicType
 assertSameBasicType typ1 typ2 = do
@@ -311,7 +428,9 @@ evalType (EProc (PDec externs args (Blok blk))) = do
         Right x -> pure $ Ok $ buildProcType x externs args
         Left y -> pure $ Left y
 evalType (ELamb (LDec typ args (Blok blk))) = do
+    addEnvFrame args
     typ' <- typecheckBlock blk
+    popEnv
     case typ' of
         Right x -> if x == typ then pure $ Ok $ buildFunType typ args
             else pure $ Left $ "Missmatched function return type - expected " ++ show typ ++ " got " ++ show x
@@ -358,16 +477,14 @@ buildProcType :: BasicType -> [Arg] -> [Arg] -> Type
 buildProcType typ externs args = Const $ TProc typ externs (argsToType args)
 
 evalCall :: Err Type -> [Err Type] -> Context (Err Type)
-evalCall fun args = do
-    case fun of
-        Left y -> pure $ Left y
-        Right fun_type ->
-            if null errs
-            then funTypeEqualsArgs (extractBasicType fun_type) goods
-            else pure $ Left $ head errs
-            where
-                goods = rights args
-                errs = lefts args
+evalCall (Left y) _ = pure $ Left y
+evalCall (Right fun_type) args = 
+    if null errs
+    then funTypeEqualsArgs (extractBasicType fun_type) goods
+    else pure $ Left $ head errs
+    where
+        goods = rights args
+        errs = lefts args
 
 assertExternsExistAux :: Arg -> Context (Err ())
 assertExternsExistAux (FArg typ name) = do
@@ -390,8 +507,10 @@ funTypeEqualsArgs (Fun typ expected) args =
     pure $ if expected == args then Ok $ Const typ
     else Left "Arguments in function call have missmatched types."
 funTypeEqualsArgs (TProc _ externs expected) args = do
-    assertExternsExist externs
-    funTypeEqualsArgs (Fun Void expected) args
+    err <- assertExternsExist externs
+    case err of 
+        Left y -> pure $ Left y 
+        Right _ -> funTypeEqualsArgs (Fun Void expected) args
 funTypeEqualsArgs typ _ = pure $ Left $ "This type is not callable " ++ show typ
 
 evalsToAnyBasicType :: Expr -> [BasicType] -> Context (Err Type)

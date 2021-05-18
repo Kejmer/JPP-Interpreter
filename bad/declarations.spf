@@ -6,7 +6,7 @@ def int as_block() do
 end;
 
 def void as_lambda(int unimportant) void lambda(int x) do # nazwa zmiennej nie ma znaczenia jeśli podajemy potem lambdę
-    print(to_str(x));
+    print(x);
 end;
 
 def int main() do
@@ -15,12 +15,12 @@ def int main() do
     void lambda_type() mut block = void lambda() do end;
     if (x == 1) do 
         block = void lambda() do
-            print(to_str(1));
+            print(1);
         end;
     end
     else do
         block = void lambda() do
-            print(to_str(2));
+            print(2);
         end;
     end;
 

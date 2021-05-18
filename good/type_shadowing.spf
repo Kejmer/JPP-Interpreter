@@ -1,0 +1,20 @@
+def void call_with_string(string s) do 
+    print(s);
+end;
+
+def void call_with_int(int a) do 
+    call_with_string(to_str(a));
+end;
+
+def int main() do 
+    int x = 1;
+    call_with_int(x);
+    do 
+        call_with_int(x);
+        string x = "shadow";
+        #call_with_string(x);
+    end;
+    call_with_int(x);
+
+    return 0;
+end;

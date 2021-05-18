@@ -126,8 +126,8 @@ instance Print Syntax.Abs.HBlock where
 instance Print Syntax.Abs.Stmt where
   prt i = \case
     Syntax.Abs.BStmt block -> prPrec i 0 (concatD [prt 0 block])
-    Syntax.Abs.DeclMut basictype id_ expr -> prPrec i 0 (concatD [prt 0 basictype, doc (showString "mut"), prt 0 id_, doc (showString "="), prt 0 expr])
-    Syntax.Abs.DeclConst basictype id_ expr -> prPrec i 0 (concatD [prt 0 basictype, prt 0 id_, doc (showString "="), prt 0 expr])
+    Syntax.Abs.DeclConst basictype id_ expr -> prPrec i 0 (concatD [prt 0 basictype, doc (showString "mut"), prt 0 id_, doc (showString "="), prt 0 expr])
+    Syntax.Abs.DeclMut basictype id_ expr -> prPrec i 0 (concatD [prt 0 basictype, prt 0 id_, doc (showString "="), prt 0 expr])
     Syntax.Abs.Ass id_ expr -> prPrec i 0 (concatD [prt 0 id_, doc (showString "="), prt 0 expr])
     Syntax.Abs.ArrAss id_ expr1 expr2 -> prPrec i 0 (concatD [prt 0 id_, doc (showString "["), prt 0 expr1, doc (showString "]"), doc (showString "="), prt 0 expr2])
     Syntax.Abs.Ret expr -> prPrec i 0 (concatD [doc (showString "return"), prt 0 expr])

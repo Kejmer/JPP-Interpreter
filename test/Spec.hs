@@ -1,5 +1,5 @@
 import qualified TypeCheckTest
-import Interpreter (Err)
+import Runner (Err)
 
 main :: IO ()
 main = testAll
@@ -36,5 +36,10 @@ testAll = do
     testFeature "Statyczne typowanie - zly return type" (TypeCheckTest.testBadTypes 0)
     testFeature "Statyczne typowanie - deklaracje" (TypeCheckTest.testDeclarations 0)
     testFeature "Statyczne typowanie - petla for" (TypeCheckTest.testFor 0)
+    testFeature "Statyczne typowanie - return w procesie" (TypeCheckTest.testReturnInProcGood 0)
+    testFeature "Statyczne typowanie - brak extern" (TypeCheckTest.testReturnInProcBad 0)
+    testFeature "Statyczne typowanie - type shadowing" (TypeCheckTest.testTypeShadowing 0)
+
+    
 
     printBlock

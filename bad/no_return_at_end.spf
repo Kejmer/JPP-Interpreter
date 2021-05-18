@@ -1,0 +1,8 @@
+int test() do 
+    return "33";    
+end;
+
+int main() do
+    test();
+    return 0;
+end;

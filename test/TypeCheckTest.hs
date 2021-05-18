@@ -1,6 +1,6 @@
 module TypeCheckTest where
 
-import Interpreter 
+import Runner 
 
 type TestFun = Verbosity  -> IO (Err ())
 
@@ -19,6 +19,15 @@ testGoodTypes v = runFileTypecheck v "good/hello_world.spf"
     
 testDeclarations :: TestFun 
 testDeclarations v = runFileTypecheck v "good/declarations.spf"
+
+testReturnInProcGood :: TestFun 
+testReturnInProcGood v = runFileTypecheck v "good/proc_extern.spf" 
+
+testReturnInProcBad :: TestFun 
+testReturnInProcBad v = negateResult $ runFileTypecheck v "bad/proc_extern.spf" 
+
+testTypeShadowing :: TestFun 
+testTypeShadowing v = runFileTypecheck v "good/type_shadowing.spf"
 
 testFor :: TestFun 
 testFor v = runFileTypecheck v "good/for.spf"

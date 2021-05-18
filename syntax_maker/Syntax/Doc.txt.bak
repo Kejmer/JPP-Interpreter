@@ -33,10 +33,9 @@ The set of reserved words is the set of terminals appearing in the grammar. Thos
 The reserved words used in syntax are the following:
   | ``bool`` | ``def`` | ``do`` | ``else``
   | ``end`` | ``false`` | ``for`` | ``if``
-  | ``int`` | ``lambda`` | ``lambda_type`` | ``mut``
-  | ``print`` | ``proc`` | ``proc_type`` | ``return``
-  | ``string`` | ``to_str`` | ``true`` | ``void``
-  | ``while`` |  |  |
+  | ``int`` | ``lambda`` | ``mut`` | ``print``
+  | ``proc`` | ``return`` | ``string`` | ``to_str``
+  | ``true`` | ``void`` | ``while`` |
 
 The symbols used in syntax are the following:
   | = | [ | ] | (
@@ -88,8 +87,8 @@ All other symbols are terminals.
   |  |  **|**  | ``string``
   |  |  **|**  | ``bool``
   |  |  **|**  | ``void``
-  |  |  **|**  | //BasicType// ``lambda_type`` ``(`` //[Type]// ``)``
-  |  |  **|**  | //BasicType// ``proc_type`` ``[`` //[Arg]// ``]`` ``(`` //[Type]// ``)``
+  |  |  **|**  | //BasicType// ``lambda`` ``(`` //[Type]// ``)``
+  |  |  **|**  | //BasicType// ``proc`` ``[`` //[Arg]// ``]`` ``(`` //[Type]// ``)``
   | //[BasicType]// | -> | **eps**
   |  |  **|**  | //BasicType//
   |  |  **|**  | //BasicType// ``,`` //[BasicType]//

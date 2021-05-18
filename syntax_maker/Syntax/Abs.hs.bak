@@ -22,8 +22,8 @@ data HBlock = AsProc PBlock | AsStmt Stmt
 
 data Stmt
     = BStmt Block
-    | DeclMut BasicType Ident Expr
     | DeclConst BasicType Ident Expr
+    | DeclMut BasicType Ident Expr
     | Ass Ident Expr
     | ArrAss Ident Expr Expr
     | Ret Expr

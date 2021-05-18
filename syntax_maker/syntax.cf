@@ -38,8 +38,8 @@ AsProc.      HBlock ::= PBlock ;
 AsStmt.      HBlock ::= Stmt ;
 
 BStmt.       Stmt ::= Block ;
-DeclConst.   Stmt ::= BasicType "mut" Ident "=" Expr ;
-DeclMut.     Stmt ::= BasicType Ident "=" Expr ;
+DeclMut.     Stmt ::= BasicType "mut" Ident "=" Expr ;
+DeclConst.   Stmt ::= BasicType Ident "=" Expr ;
 Ass.         Stmt ::= Ident "=" Expr ;
 ArrAss.      Stmt ::= Ident "[" Expr "]" "=" Expr ;
 Ret.         Stmt ::= "return" Expr ;
@@ -64,8 +64,8 @@ Int.         BasicType ::= "int" ;
 Str.         BasicType ::= "string" ;
 Bool.        BasicType ::= "bool" ;
 Void.        BasicType ::= "void" ;
-Fun.         BasicType ::= BasicType "lambda" "(" [Type] ")" ;
-TProc.       BasicType ::= BasicType "proc" "[" [Arg] "]" "(" [Type] ")" ;
+Fun.         BasicType ::= BasicType "lambda_type" "(" [Type] ")" ;
+TProc.       BasicType ::= BasicType "proc_type" "[" [Arg] "]" "(" [Type] ")" ;
 separator    BasicType "," ;
 
 ------------------------ functions ---------------------------

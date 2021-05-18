@@ -1,0 +1,10 @@
+def void foo(int a) proc [int x](int a) do 
+    print ("Jestem procesem");
+end;
+
+def int main() do 
+    int y = 3;
+    foo(4);
+
+    return 0;
+end;

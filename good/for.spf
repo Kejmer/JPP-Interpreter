@@ -1,6 +1,6 @@
 def int main() do 
     int mut sum = 0;
-    for [1,2,3,4] proc [ ] (int x) do
+    for [1,2,3,4] proc [int sum] (int x) do
         sum = sum + x;
     end;
     print(to_str(sum));
