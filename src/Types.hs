@@ -98,32 +98,3 @@ data CompOp = Low | Grt | LowEq | GrtEq | Eq | NEq
 
 newtype Ident = Ident String
   deriving (C.Eq, C.Ord, C.Show, C.Read, Data.String.IsString)
-
--- addOp :: AddOp -> (Integer -> Integer -> Integer)
--- addOp Plus = (+)
--- addOp Minus = (-)
-
--- mulOp :: MulOp -> (Integer -> Integer -> Integer)
--- mulOp Times = (*)
--- mulOp Div = div
--- mulOp Mod = mod
-
--- compOp :: CompOp -> (Integer -> Integer -> Bool)
--- compOp Low = (<)
--- compOp Grt = (>)
--- compOp LowEq = (<=)
--- compOp GrtEq = (>=)
--- compOp Eq = (==)
--- compOp NEq = (/=)
-
--- data Mode 
---   = MContinue 
---   | MBreak 
---   | MLoop Type 
---   | MFun Type 
---   | MReturn
---   deriving (C.Show, C.Eq)
-
--- type RetVal a = ExceptT (TError a) IO
-
--- type Interpreter a b = StateT (Store b) (ReaderT (Context b) (RetVal b)) a

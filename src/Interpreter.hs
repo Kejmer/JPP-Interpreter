@@ -5,6 +5,8 @@ import ErrM
 import Control.Monad.State
 import Data.Map (Map, lookup, findMax, size, insert, member, empty, (!))
 import Data.Maybe (fromJust)
+import Control.Monad.Except
+
 
 -----------------------------
 -- MEMORY MENAGEMENT START --
@@ -26,10 +28,13 @@ data Value
     = VInt Integer
     | VBool Bool
     | VStr String
-    | VBlock Block
+    | VFun BasicType [Arg] [Stmt]
+    | VProc [Arg] [Arg] [Stmt]
     | VArr Value Value -- val + next // like a queue
     | VNone
-type Context a = (StateT TypeContext IO) a
+    deriving (Prelude.Eq, Prelude.Ord, Prelude.Show, Prelude.Read)
+
+type Context a = StateT TypeContext (ExceptT String IO) a
 
 emptyEnv :: TypeEnv
 emptyEnv = TypeEnv { parent_env = Nothing, local_env = Data.Map.empty }
@@ -116,6 +121,14 @@ assignValue name val = do
             values = insert l val $ values context
         }
 
+assignValueArg :: Arg -> Value -> Context ()
+assignValueArg (FArg typ name) = assignValue name
+
+assignValuesArgs :: [Arg] -> [Value] -> Context ()
+assignValuesArgs (x:xs) (y:ys) = assignValueArg x y >> assignValuesArgs xs ys
+assignValuesArgs [] [] = pure ()
+assignValuesArgs _ _ = pure raiseErr >> pure () -- ERROR
+
 getValue :: Ident -> Context Value
 getValue name = do
     loc <- getLoc name
@@ -177,9 +190,12 @@ toStr VNone = VStr "--none--"
 toStr _ = VNone
 
 printStr :: Value -> Context ()
-printStr (VStr a) = liftIO $ putStrLn s
+printStr (VStr s) = liftIO $ putStrLn s
 printStr _ = pure ()
 
+isTrue :: Value -> Bool
+isTrue (VBool a) = a
+isTrue _ = False -- ERROR raiseErr
 
 ---------------------------------------
 ---------------- EXPR -----------------
@@ -187,8 +203,34 @@ printStr _ = pure ()
 
 getNthElem :: Value -> Value -> Context Value
 getNthElem (VArr h t) (VInt 0) = pure h
-getNthElem (VArr h t) (VInt n) = if n < 0 then pure VNone else getNthElem t (VInt n-1)
+getNthElem (VArr h t) (VInt n) = if n < 0 then pure VNone else getNthElem t (VInt $ n-1)
 getNthElem _ _ = pure VNone
+
+raiseErr :: Value
+raiseErr = VNone
+
+guardNonNegativeIndex :: Value -> Value
+guardNonNegativeIndex (VInt n) = if n < 0
+    then raiseErr
+    else VInt n
+guardNonNegativeIndex x = raiseErr
+
+putNthElemAux :: Value -> Value -> Value -> Value
+putNthElemAux (VArr h t) (VInt 0) v = VArr v t
+putNthElemAux (VArr h VNone) (VInt n) v = VArr h tail
+    where
+    tail = putNthElemAux (VArr VNone VNone) (VInt $ n-1) v
+putNthElemAux (VArr h t) (VInt n) v = VArr h (putNthElemAux t (VInt $ n-1) v)
+putNthElemAux _ _ _ = raiseErr
+
+putNthElem :: Ident -> Value -> Value -> Value -> Context Value
+putNthElem name a b c = do
+    assignValue name (putNthElemAux a (guardNonNegativeIndex b) c)
+    pure VNone
+
+takeFirst :: Value -> (Value, Value)
+takeFirst (VArr h t) = (h, t)
+takeFirst _ = (VNone, VNone)
 
 evalExpr :: Expr -> Context Value
 evalExpr (EVar name) = getValue name
@@ -207,38 +249,154 @@ evalExpr (EArrRead name expr) = do
     arr <- getValue name
     idx <- evalExpr expr
     getNthElem arr idx
-evalExpr (Neg expr) = negate <$> evalExpr expr
-evalExpr (Not expr) = negate <$> evalExpr expr
+evalExpr (Neg expr) = negateOp <$> evalExpr expr
+evalExpr (Not expr) = negateOp <$> evalExpr expr
 evalExpr (EMul expr1 op expr2) = mulOp <$> evalExpr expr1 <*> pure op <*> evalExpr expr2
 evalExpr (EAdd expr1 op expr2) = addOp <$> evalExpr expr1 <*> pure op <*> evalExpr expr2
 evalExpr (EComp expr1 op expr2) = compOp <$> evalExpr expr1 <*> pure op <*> evalExpr expr2
 evalExpr (EAnd expr1 expr2) = logicOp <$> evalExpr expr1 <*> pure LAnd <*> evalExpr expr2
 evalExpr (EOr expr1 expr2) = logicOp <$> evalExpr expr1 <*> pure LOr <*> evalExpr expr2
-evalExpr _ = pure VNone
--- evalExpr (EProc (PDec externs args (Blok blk))) = do
---     addEnvFrame args
---     typ <- typecheckBlock blk
---     popEnv
---     case typ of
---         Right x -> pure $ Ok $ buildProcType x externs args
---         Left y -> pure $ Left y
--- evalExpr (ELamb (LDec typ args (Blok blk))) = do
---     addEnvFrame args
---     typ' <- typecheckBlock blk
---     popEnv
---     case typ' of
---         Right x -> if x == typ then pure $ Ok $ buildFunType typ args
---             else pure $ Left $ "Missmatched function return type - expected " ++ show typ ++ " got " ++ show x
---         Left y -> pure $ Left y
--- evalExpr (ECall expr args) = do
---     typ <- evalExpr expr
---     args' <- mapM evalExpr args
---     evalCall typ args'
+evalExpr (ECall expr args) = do
+    fun <- evalExpr expr
+    args' <- mapM evalExpr args
+    callFun fun args'
+evalExpr (EProc (PDec externs args (Blok blk))) = pure $ VProc externs args blk
+evalExpr (ELamb (LDec typ args (Blok blk))) = pure $ VFun typ args blk
+
+assertReturnedType :: BasicType -> Value -> Value
+assertReturnedType Int (VInt x) = VInt x
+assertReturnedType Str (VStr x) = VStr x
+assertReturnedType Bool (VBool x) = VBool x
+assertReturnedType Void VNone = VNone
+assertReturnedType (Fun typ args) (VFun typ' args' _) = undefined
+assertReturnedType (TProc _ externs args) (VProc externs' args' _) = undefined
+assertReturnedType _ _ = raiseErr
+
+callFun :: Value -> [Value] -> Context Value
+callFun (VFun typ args blok) values = do
+    addEnvFrame args
+    assignValuesArgs args values
+    res <- execStmts blok
+    popEnv
+    pure $ assertReturnedType typ res
+callFun (VProc _ args blok) values = do
+    addEnvFrame args
+    assignValuesArgs args values
+    execStmts blok
+    popEnv
+    pure VNone
+callFun _ _ = pure raiseErr
+
+---------------------------------------
+---------------- STMT -----------------
+---------------------------------------
+
+execStmts :: [Stmt] -> Context Value
+execStmts [] = pure VNone
+execStmts (x:xs) = do
+    ret <- execStmt x
+    if ret == VNone then execStmts xs else pure ret
 
 
+execStmt :: Stmt -> Context Value
+execStmt (BStmt (Blok blok)) = do
+    pushEnv
+    res <- execStmts blok
+    popEnv
+    pure res
+execStmt (DeclConst typ name expr) = do
+    declare (FArg (Const typ) name)
+    execStmt (Ass name expr)
+execStmt (DeclMut typ name expr) = do
+    declare (FArg (Mut typ) name)
+    execStmt (Ass name expr)
+execStmt (Ass name expr) = do
+    val <- evalExpr expr
+    assignValue name val
+    pure VNone
+execStmt (ArrAss name expr_idx expr_val) = do
+    arr <- getValue name
+    idx <- evalExpr expr_idx
+    val <- evalExpr expr_val
+    putNthElem name arr idx val
+execStmt (Ret expr) = evalExpr expr
+execStmt (If expr blok) = do
+    val <- evalExpr expr
+    if isTrue val then execHBlock blok else pure VNone
+execStmt (IfElse expr blok blok_else) = do
+    val <- evalExpr expr
+    execHBlock $ if isTrue val then blok else blok_else
+execStmt (While expr blok) = do
+    val <- evalExpr expr
+    if not $ isTrue val then pure VNone
+    else do
+        ret <- execHBlock blok
+        if ret == VNone then execStmt (While expr blok) else pure ret
+execStmt (Print expr) = do
+    val <- evalExpr expr
+    printStr val
+    pure VNone
+execStmt (SExp expr) = do
+    evalExpr expr
+    pure VNone
+execStmt (For expr (PDec _ args (Blok blok))) = do
+    arr <- evalExpr expr
+    let (el, arr') = takeFirst arr in
+        forAux el arr' (head args) blok
+execStmt (FDefAlt _ name _ blok) = do
+    fun <- evalExpr (ELamb blok)
+    declare (FArg (Const Void) name)
+    assignValue name fun
+    pure VNone
+execStmt (FDef _ name _ (FProc (PDec externs args (Blok blok)))) = do
+    declare (FArg (Const Void) name)
+    assignValue name (VProc externs args blok)
+    pure VNone
+execStmt (FDef typ name args (FBlok (Blok blok))) = do 
+    declare (FArg (Const Void) name)
+    assignValue name (VFun typ args blok)
+    pure VNone
+execStmt (FDef _ name _ (FVar p)) = do 
+    fun <- evalExpr (EVar p)
+    declare (FArg (Const Void) name)
+    assignValue name fun
+    pure VNone
 
 
+forAux :: Value -> Value -> Arg -> [Stmt] -> Context Value
+forAux VNone VNone arg stmts = pure VNone
+forAux VNone arr arg stmts = let (el, arr') = takeFirst arr in forAux el arr' arg stmts
+forAux el arr arg stmts = do
+    addEnvFrame [arg]
+    assignValueArg arg el
+    res <- execStmts stmts
+    popEnv
+    if res /= VNone then pure res else forAux VNone arr arg stmts
 
+execHBlock :: HBlock -> Context Value
+execHBlock (AsStmt stmt) = execStmt stmt
+execHBlock (AsProc blok) = execPBlock blok
 
+execPBlock :: PBlock -> Context Value
+execPBlock (FProc (PDec _ _ (Blok blok))) = execPBlock (FBlok (Blok blok))
+execPBlock (FBlok (Blok blok)) = execStmt (BStmt (Blok blok))
+execPBlock (FVar name) = execStmt (SExp (ECall (EVar name) []))
 
+---------------------------------------
+---------------- INIT -----------------
+---------------------------------------
 
+extractErrorCode :: Value -> Integer  
+extractErrorCode (VInt err) = err 
+extractErrorCode _ = 0
+
+runProgramAux :: Program -> Context Integer
+runProgramAux (MyProgram blok) = do 
+    execStmts blok -- load all functions including main 
+    err <- evalExpr (ECall (EVar (Ident "main")) []) -- call main and get error code
+    pure $ extractErrorCode err
+
+runProgram :: Program -> IO (Either String Integer)
+runProgram p = runExceptT s 
+    where s = evalStateT (runProgramAux p) emptyContext
+    

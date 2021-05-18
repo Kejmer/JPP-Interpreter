@@ -1,6 +1,10 @@
 def int main() do 
     int mut sum = 0;
-    for [1,2,3,4] proc [int sum] (int x) do
+    int [] mut arr = [1,2000,13,4,3];
+    arr[1] = 3;
+    arr[800] = 2; <# It is allowed to assign far behind #>
+    for arr proc [int sum] (int x) do
+        print("Adding " + to_str(x) + " to " + to_str(sum));
         sum = sum + x;
     end;
     print(to_str(sum));

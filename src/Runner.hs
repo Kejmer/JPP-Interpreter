@@ -23,6 +23,7 @@ import Par   ( pProgram, myLexer )
 import Print ( Print, printTree )
 import Skel  ()
 import StaticTypeChecker ( checkProgram )
+import Interpreter ( runProgram )
 
 type Err        = Either String
 type ParseFun a = [Token] -> Err a
@@ -32,7 +33,7 @@ putStrV :: Verbosity -> String -> IO ()
 putStrV v s = when (v > 1) $ putStrLn s
 
 runFile :: Verbosity -> ParseFun Program -> FilePath -> IO ()
-runFile v p f = putStrLn f >> readFile f >>= run v p
+runFile v p f = putStrV v f >> readFile f >>= run v p
 
 runFileTypecheck :: Verbosity -> FilePath -> IO (Err ())
 runFileTypecheck v f = readFile f >>= runTypeCheck v
@@ -64,14 +65,15 @@ run v p s =
     Right tree -> do
       showTree v tree
       case checkProgram tree of 
-        Left err ->
+        Left err -> do 
           putStrLn "TYPECHECK ERROR:"
           putStrLn err 
           exitFailure 
-        Right _ -> 
-          
-
-      exitSuccess
+        Right _ -> do 
+          res <- runProgram tree
+          case res of 
+            Left err -> putStrLn err >> exitFailure 
+            Right code -> if code == 0 then exitSuccess else exitFailure
   where
   ts = myLexer s
 
@@ -90,11 +92,3 @@ usage = do
     , "  -s (files)      Silent mode. Parse content of files silently."
     ]
   exitFailure
--------------------------------------------------------
--------------------------------------------------------
--------------------------------------------------------
------------------------- READER------------------------
--------------------------------------------------------
--------------------------------------------------------
--------------------------------------------------------
-
