@@ -200,6 +200,7 @@ instance Print [Syntax.Abs.Arg] where
 
 instance Print Syntax.Abs.Expr where
   prt i = \case
+    Syntax.Abs.ERange expr1 expr2 -> prPrec i 6 (concatD [doc (showString "range"), doc (showString "("), prt 0 expr1, doc (showString ","), prt 0 expr2, doc (showString ")")])
     Syntax.Abs.EVar id_ -> prPrec i 6 (concatD [prt 0 id_])
     Syntax.Abs.EInt n -> prPrec i 6 (concatD [prt 0 n])
     Syntax.Abs.ETrue -> prPrec i 6 (concatD [doc (showString "true")])

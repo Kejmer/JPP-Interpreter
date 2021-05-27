@@ -67,7 +67,8 @@ data Arg = FArg Type Ident
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 data Expr
-    = EVar Ident
+    = ERange Expr Expr
+    | EVar Ident
     | EInt Integer
     | ETrue
     | EFalse

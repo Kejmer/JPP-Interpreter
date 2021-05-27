@@ -57,13 +57,14 @@ import Syntax.Lex
   'print' { PT _ (TS _ 36) }
   'proc' { PT _ (TS _ 37) }
   'proc_type' { PT _ (TS _ 38) }
-  'return' { PT _ (TS _ 39) }
-  'string' { PT _ (TS _ 40) }
-  'to_str' { PT _ (TS _ 41) }
-  'true' { PT _ (TS _ 42) }
-  'void' { PT _ (TS _ 43) }
-  'while' { PT _ (TS _ 44) }
-  '||' { PT _ (TS _ 45) }
+  'range' { PT _ (TS _ 39) }
+  'return' { PT _ (TS _ 40) }
+  'string' { PT _ (TS _ 41) }
+  'to_str' { PT _ (TS _ 42) }
+  'true' { PT _ (TS _ 43) }
+  'void' { PT _ (TS _ 44) }
+  'while' { PT _ (TS _ 45) }
+  '||' { PT _ (TS _ 46) }
   L_Ident  { PT _ (TV $$) }
   L_integ  { PT _ (TI $$) }
   L_quoted { PT _ (TL $$) }
@@ -154,7 +155,8 @@ ListArg : {- empty -} { [] }
         | Arg ',' ListArg { (:) $1 $3 }
 
 Expr6 :: { Syntax.Abs.Expr }
-Expr6 : Ident { Syntax.Abs.EVar $1 }
+Expr6 : 'range' '(' Expr ',' Expr ')' { Syntax.Abs.ERange $3 $5 }
+      | Ident { Syntax.Abs.EVar $1 }
       | Integer { Syntax.Abs.EInt $1 }
       | 'true' { Syntax.Abs.ETrue }
       | 'false' { Syntax.Abs.EFalse }

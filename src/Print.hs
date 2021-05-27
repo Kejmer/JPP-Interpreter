@@ -126,8 +126,8 @@ instance Print Types.HBlock where
 instance Print Types.Stmt where
   prt i = \case
     Types.BStmt block -> prPrec i 0 (concatD [prt 0 block])
-    Types.DeclConst basictype id_ expr -> prPrec i 0 (concatD [prt 0 basictype, doc (showString "mut"), prt 0 id_, doc (showString "="), prt 0 expr])
-    Types.DeclMut basictype id_ expr -> prPrec i 0 (concatD [prt 0 basictype, prt 0 id_, doc (showString "="), prt 0 expr])
+    Types.DeclMut basictype id_ expr -> prPrec i 0 (concatD [prt 0 basictype, doc (showString "mut"), prt 0 id_, doc (showString "="), prt 0 expr])
+    Types.DeclConst basictype id_ expr -> prPrec i 0 (concatD [prt 0 basictype, prt 0 id_, doc (showString "="), prt 0 expr])
     Types.Ass id_ expr -> prPrec i 0 (concatD [prt 0 id_, doc (showString "="), prt 0 expr])
     Types.ArrAss id_ expr1 expr2 -> prPrec i 0 (concatD [prt 0 id_, doc (showString "["), prt 0 expr1, doc (showString "]"), doc (showString "="), prt 0 expr2])
     Types.Ret expr -> prPrec i 0 (concatD [doc (showString "return"), prt 0 expr])
@@ -165,8 +165,8 @@ instance Print Types.BasicType where
     Types.Str -> prPrec i 0 (concatD [doc (showString "string")])
     Types.Bool -> prPrec i 0 (concatD [doc (showString "bool")])
     Types.Void -> prPrec i 0 (concatD [doc (showString "void")])
-    Types.Fun basictype types -> prPrec i 0 (concatD [prt 0 basictype, doc (showString "lambda"), doc (showString "("), prt 0 types, doc (showString ")")])
-    Types.TProc basictype args types -> prPrec i 0 (concatD [prt 0 basictype, doc (showString "proc"), doc (showString "["), prt 0 args, doc (showString "]"), doc (showString "("), prt 0 types, doc (showString ")")])
+    Types.Fun basictype types -> prPrec i 0 (concatD [prt 0 basictype, doc (showString "lambda_type"), doc (showString "("), prt 0 types, doc (showString ")")])
+    Types.TProc basictype args types -> prPrec i 0 (concatD [prt 0 basictype, doc (showString "proc_type"), doc (showString "["), prt 0 args, doc (showString "]"), doc (showString "("), prt 0 types, doc (showString ")")])
   prtList _ [] = concatD []
   prtList _ [x] = concatD [prt 0 x]
   prtList _ (x:xs) = concatD [prt 0 x, doc (showString ","), prt 0 xs]
@@ -200,6 +200,7 @@ instance Print [Types.Arg] where
 
 instance Print Types.Expr where
   prt i = \case
+    Types.ERange expr1 expr2 -> prPrec i 6 (concatD [doc (showString "range"), doc (showString "("), prt 0 expr1, doc (showString ","), prt 0 expr2, doc (showString ")")])
     Types.EVar id_ -> prPrec i 6 (concatD [prt 0 id_])
     Types.EInt n -> prPrec i 6 (concatD [prt 0 n])
     Types.ETrue -> prPrec i 6 (concatD [doc (showString "true")])

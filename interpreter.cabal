@@ -29,7 +29,6 @@ library
       Par
       Print
       Runner
-      Skel
       StaticTypeChecker
       Types
   other-modules:

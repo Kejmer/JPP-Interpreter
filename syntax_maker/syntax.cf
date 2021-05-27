@@ -81,6 +81,7 @@ FDef.        Stmt ::= "def" BasicType Ident "(" [Arg] ")" PBlock ;
 FDefAlt.     Stmt ::= "def" BasicType Ident "(" [Arg] ")" Lambda ;
 
 ------------------------- expr -------------------------------
+ERange.      Expr6 ::= "range" "(" Expr "," Expr ")" ;
 EVar.        Expr6 ::= Ident ;
 EInt.        Expr6 ::= Integer ;
 ETrue.       Expr6 ::= "true" ;

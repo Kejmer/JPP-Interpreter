@@ -84,6 +84,7 @@ transArg x = case x of
 
 transExpr :: Syntax.Abs.Expr -> Result
 transExpr x = case x of
+  Syntax.Abs.ERange expr1 expr2 -> failure x
   Syntax.Abs.EVar ident -> failure x
   Syntax.Abs.EInt integer -> failure x
   Syntax.Abs.ETrue -> failure x

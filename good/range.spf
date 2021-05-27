@@ -1,0 +1,11 @@
+def int main() do 
+    print("going up");
+    for range(1,11) proc [ ] (int x) do
+        print(to_str(x));
+    end;
+    print("going down");
+    for range(10,0) proc [ ] (int x) do
+        print(to_str(x));
+    end;
+    return 0;
+end;

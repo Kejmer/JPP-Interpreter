@@ -21,7 +21,6 @@ import Types ( Program )
 import Lex   ( Token )
 import Par   ( pProgram, myLexer )
 import Print ( Print, printTree )
-import Skel  ()
 import StaticTypeChecker ( checkProgram )
 import Interpreter ( runProgram )
 

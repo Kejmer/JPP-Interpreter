@@ -91,8 +91,8 @@ HBlock : PBlock { Syntax.Abs.AsProc $1 }
 
 Stmt :: { Syntax.Abs.Stmt }
 Stmt : Block { Syntax.Abs.BStmt $1 }
-     | BasicType 'mut' Ident '=' Expr { Syntax.Abs.DeclConst $1 $3 $5 }
-     | BasicType Ident '=' Expr { Syntax.Abs.DeclMut $1 $2 $4 }
+     | BasicType 'mut' Ident '=' Expr { Syntax.Abs.DeclMut $1 $3 $5 }
+     | BasicType Ident '=' Expr { Syntax.Abs.DeclConst $1 $2 $4 }
      | Ident '=' Expr { Syntax.Abs.Ass $1 $3 }
      | Ident '[' Expr ']' '=' Expr { Syntax.Abs.ArrAss $1 $3 $6 }
      | 'return' Expr { Syntax.Abs.Ret $2 }

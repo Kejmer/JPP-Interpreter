@@ -216,10 +216,13 @@ isTrue _ = throwError "Not a bool passed to a conditional"
 ---------------- EXPR -----------------
 ---------------------------------------
 
-getNthElem :: Value -> Value -> Context Value
-getNthElem (VArr h t) (VInt 0) = pure h
-getNthElem (VArr h t) (VInt n) = if n < 0 then throwError "Tried to read negative array index" else getNthElem t (VInt $ n-1)
-getNthElem _ _ = throwError "Bad array read"
+getNthElem :: Value -> Value -> Ident -> Context Value
+getNthElem (VArr h t) (VInt 0) _ = pure h
+getNthElem (VArr h t) (VInt n) name =
+    if n < 0
+        then throwError $ "Tried to read negative array index - array named " ++ show name
+        else getNthElem t (VInt $ n-1) name
+getNthElem _ _ name = throwError $ "Bad array read - array named " ++ show name
 
 guardNonNegativeIndex :: Value -> Context Value
 guardNonNegativeIndex (VInt n) = if n < 0
@@ -248,7 +251,18 @@ takeFirst :: Value -> (Value, Value)
 takeFirst (VArr h t) = (h, t)
 takeFirst _ = (VNone, VNone)
 
+rangeAux :: Value -> Value -> Value
+rangeAux (VInt start) (VInt end)
+  | start < end = VArr (VInt start) (rangeAux (VInt $ start + 1) (VInt end))
+  | start == end = VArr VNone VNone
+  | otherwise = VArr (VInt start) (rangeAux (VInt $ start - 1) (VInt end))
+rangeAux _ _ = VArr VNone VNone
+
 evalExpr :: Expr -> Context Value
+evalExpr (ERange expr1 expr2) = do
+    start <- evalExpr expr1
+    end <- evalExpr expr2
+    pure $ rangeAux start end
 evalExpr (EVar name) = getValue name
 evalExpr (EInt a) = pure $ VInt a
 evalExpr ETrue = pure $ VBool True
@@ -264,7 +278,7 @@ evalExpr (EArr []) = pure VNone
 evalExpr (EArrRead name expr) = do
     arr <- getValue name
     idx <- evalExpr expr
-    getNthElem arr idx
+    getNthElem arr idx name
 evalExpr (Neg expr) = negateOp <$> evalExpr expr
 evalExpr (Not expr) = negateOp <$> evalExpr expr
 evalExpr (EMul expr1 op expr2) = mulOp <$> evalExpr expr1 <*> pure op <*> evalExpr expr2
