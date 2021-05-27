@@ -1,0 +1,12 @@
+def int main() do 
+    string x = "hi";
+    def void f() do 
+        print(x);
+        do 
+            string x = "bye";
+            f();
+        end;
+    end;
+    f();
+    return 0;
+end;

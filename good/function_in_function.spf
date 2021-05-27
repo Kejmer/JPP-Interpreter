@@ -1,0 +1,7 @@
+def int main() do 
+    def void caller() do 
+        print("INSIDE");
+    end; 
+    caller();
+    return 0;
+end;

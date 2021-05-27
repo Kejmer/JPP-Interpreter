@@ -1,0 +1,5 @@
+def int main() do 
+    int [] arr = [1,2];
+    print(to_str(arr[-4]));
+    return 1;
+end;

@@ -12,7 +12,7 @@ def int main() do
     do 
         call_with_int(x);
         string x = "shadow";
-        #call_with_string(x);
+        call_with_string(x);
     end;
     call_with_int(x);
 

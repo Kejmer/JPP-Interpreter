@@ -72,7 +72,7 @@ run v p s =
         Right _ -> do 
           res <- runProgram tree
           case res of 
-            Left err -> putStrLn err >> exitFailure 
+            Left err -> putStrLn ("RUNTIME ERROR: " ++ err) >> exitFailure 
             Right code -> if code == 0 then exitSuccess else exitFailure
   where
   ts = myLexer s

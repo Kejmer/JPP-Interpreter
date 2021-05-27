@@ -1,0 +1,14 @@
+def int main() do 
+
+    print(to_str(rekurencja(5)));
+
+    return 0;
+end;
+
+def int rekurencja(int n) do 
+    print(to_str(n));
+    if (n > 0) do 
+        return (n + rekurencja(n-1)); 
+    end;
+    # zwracana domyślna wartość 0
+end;
