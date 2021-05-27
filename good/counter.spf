@@ -1,0 +1,26 @@
+def int lambda_type (int) counter(int x) do 
+    int mut c = x;
+    return int lambda (int k) do 
+        c = c + k;
+        return c;
+    end; 
+end;
+
+
+def int main() do 
+    print("Counter example");
+    int lambda_type (int) c1 = counter(3);
+    int lambda_type (int) c2 = counter(3);
+    int lambda_type (int) c3 = counter(4);
+
+    print(to_str(c1(5)));
+    print(to_str(c1(6)));
+
+    print(to_str(c2(1)));
+    print(to_str(c2(1)));
+
+    print(to_str(c3(10)));
+    print(to_str(c3(20)));
+
+    return 0;
+end;
