@@ -1,0 +1,4 @@
+def int main() do 
+    print(to_str(tab[13]));
+    return 0;
+end;
